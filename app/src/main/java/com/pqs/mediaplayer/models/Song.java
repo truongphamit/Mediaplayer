@@ -26,6 +26,8 @@ public class Song implements Parcelable {
 
     private String album;
 
+    private long albumId;
+
     @Unique
     private String path;
 
@@ -41,6 +43,14 @@ public class Song implements Parcelable {
 
     public Song(Parcel in) {
         readFromParcel(in);
+    }
+
+    public long getAlbumId() {
+        return albumId;
+    }
+
+    public void setAlbumId(long albumId) {
+        this.albumId = albumId;
     }
 
     public int getId() {
@@ -127,6 +137,7 @@ public class Song implements Parcelable {
         dest.writeString(this.displayName);
         dest.writeString(this.artist);
         dest.writeString(this.album);
+        dest.writeLong(this.albumId);
         dest.writeString(this.path);
         dest.writeInt(this.duration);
         dest.writeInt(this.size);
@@ -139,6 +150,7 @@ public class Song implements Parcelable {
         this.displayName = in.readString();
         this.artist = in.readString();
         this.album = in.readString();
+        this.albumId = in.readLong();
         this.path = in.readString();
         this.duration = in.readInt();
         this.size = in.readInt();

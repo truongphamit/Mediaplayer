@@ -91,9 +91,9 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -120,19 +120,20 @@ public class MainActivity extends AppCompatActivity
     private void init() {
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(SongsPageFragment.newInstance());
-        fragments.add(GenresPageFragment.newInstance());
-        fragments.add(SuggestedPageFragment.newInstance());
-        fragments.add(ArtistsPageFragment.newInstance());
         fragments.add(AlbumPageFragment.newInstance());
+//        fragments.add(GenresPageFragment.newInstance());
+//        fragments.add(SuggestedPageFragment.newInstance());
+        fragments.add(ArtistsPageFragment.newInstance());
 
         List<String> titles = new ArrayList<>();
         titles.add("SONGS");
-        titles.add("GENRES");
-        titles.add("SUGGESTED");
-        titles.add("ARTISTS");
         titles.add("ALBUMS");
+//        titles.add("GENRES");
+//        titles.add("SUGGESTED");
+        titles.add("ARTISTS");
 
         viewpager.setAdapter(new PagerAdapter(getSupportFragmentManager(), this, fragments, titles));
+        viewpager.setOffscreenPageLimit(4);
         tabs.setupWithViewPager(viewpager);
     }
 }

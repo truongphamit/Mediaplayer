@@ -1,12 +1,15 @@
 package com.pqs.mediaplayer;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -16,9 +19,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.pqs.mediaplayer.fragments.AlbumPageFragment;
+import com.pqs.mediaplayer.fragments.ArtistsPageFragment;
+import com.pqs.mediaplayer.fragments.GenresPageFragment;
 import com.pqs.mediaplayer.fragments.SongsPageFragment;
+import com.pqs.mediaplayer.fragments.SuggestedPageFragment;
+import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.utils.FileUtils;
 import com.pqs.mediaplayer.views.adapters.PagerAdapter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +37,8 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private static final String TAG = "MAINACTIVITY";
 
     @BindView(R.id.tabs)
     TabLayout tabs;
@@ -108,21 +120,19 @@ public class MainActivity extends AppCompatActivity
     private void init() {
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(SongsPageFragment.newInstance());
-        fragments.add(SongsPageFragment.newInstance());
-        fragments.add(SongsPageFragment.newInstance());
-        fragments.add(SongsPageFragment.newInstance());
-        fragments.add(SongsPageFragment.newInstance());
+        fragments.add(GenresPageFragment.newInstance());
+        fragments.add(SuggestedPageFragment.newInstance());
+        fragments.add(ArtistsPageFragment.newInstance());
+        fragments.add(AlbumPageFragment.newInstance());
 
         List<String> titles = new ArrayList<>();
+        titles.add("SONGS");
         titles.add("GENRES");
         titles.add("SUGGESTED");
         titles.add("ARTISTS");
         titles.add("ALBUMS");
-        titles.add("SONGS");
 
         viewpager.setAdapter(new PagerAdapter(getSupportFragmentManager(), this, fragments, titles));
         tabs.setupWithViewPager(viewpager);
-
-
     }
 }

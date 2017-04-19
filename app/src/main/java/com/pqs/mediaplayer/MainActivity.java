@@ -1,5 +1,6 @@
 package com.pqs.mediaplayer;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,13 +20,17 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.pqs.mediaplayer.activities.SettingsActivity;
 import com.pqs.mediaplayer.fragments.AlbumPageFragment;
 import com.pqs.mediaplayer.fragments.ArtistsPageFragment;
 import com.pqs.mediaplayer.fragments.GenresPageFragment;
+import com.pqs.mediaplayer.fragments.NowPlayingFragment;
+import com.pqs.mediaplayer.fragments.SettingsFragment;
 import com.pqs.mediaplayer.fragments.SongsPageFragment;
 import com.pqs.mediaplayer.fragments.SuggestedPageFragment;
 import com.pqs.mediaplayer.models.Song;
 import com.pqs.mediaplayer.utils.FileUtils;
+import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.PagerAdapter;
 
 import java.io.File;
@@ -104,12 +109,12 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_playlists) {
 
-        } else if (id == R.id.nav_slideshow) {
-
+        } else if (id == R.id.nav_now_playing) {
+            Utils.slideFragment(NowPlayingFragment.newInstance(), getSupportFragmentManager());
+        } else if (id == R.id.nav_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -121,19 +126,15 @@ public class MainActivity extends AppCompatActivity
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(SongsPageFragment.newInstance());
         fragments.add(AlbumPageFragment.newInstance());
-//        fragments.add(GenresPageFragment.newInstance());
-//        fragments.add(SuggestedPageFragment.newInstance());
         fragments.add(ArtistsPageFragment.newInstance());
 
         List<String> titles = new ArrayList<>();
         titles.add("SONGS");
         titles.add("ALBUMS");
-//        titles.add("GENRES");
-//        titles.add("SUGGESTED");
         titles.add("ARTISTS");
 
         viewpager.setAdapter(new PagerAdapter(getSupportFragmentManager(), this, fragments, titles));
-        viewpager.setOffscreenPageLimit(4);
+        viewpager.setOffscreenPageLimit(2);
         tabs.setupWithViewPager(viewpager);
     }
 }

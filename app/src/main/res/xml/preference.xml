@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Audio quality">
+        <Preference
+            android:key="pre_sound_effects"
+            android:summary="Enhance the music experience by personalizing the sound"
+            android:title="Sound effects" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="General">
+        <Preference
+            android:key="pre_sleep_timer"
+            android:summary="Automatically turn off playback when the timer ends"
+            android:title="Sleep timer" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Headset">
+        <CheckBoxPreference
+            android:key="pre_pause_on_disconnect"
+            android:summary="Pauses playback when headset is disconnected"
+            android:title="Pause on Disconnect" />
+        <CheckBoxPreference
+            android:key="pre_resume_on_connect"
+            android:summary="Resumes playback when headset is connected"
+            android:title="Resume on Connect" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

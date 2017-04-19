@@ -1,10 +1,8 @@
 package com.pqs.mediaplayer.views.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;

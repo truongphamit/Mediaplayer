@@ -20,6 +20,8 @@ import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.dataloaders.AlbumOfArtistLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfAlbumLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfArtistLoader;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.models.Album;
 import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.AlbumsAdapter;
 import com.pqs.mediaplayer.views.adapters.SongsAdapter;
@@ -103,6 +105,14 @@ public class ArtistDetailFragment extends Fragment {
                 albumsAdapter.setList(true);
                 rv_albums.setAdapter(albumsAdapter);
                 rv_songs.setAdapter(songsAdapter);
+
+                albumsAdapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        Album album = albumsAdapter.getAlbum(position);
+                        Utils.slideFragment(AlbumDetailFragment.newInstance(album.getTitle(), album.getId()), getActivity().getSupportFragmentManager());
+                    }
+                });
             }
         }.execute();
     }

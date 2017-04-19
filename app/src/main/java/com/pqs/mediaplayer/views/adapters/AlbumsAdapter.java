@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
 import com.pqs.mediaplayer.models.Album;
 import com.pqs.mediaplayer.utils.Utils;
 
@@ -82,9 +83,19 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
         }
     }
 
+    public Album getAlbum(int position) {
+        return albums.get(position);
+    }
+
     @Override
     public int getItemCount() {
         return albums.size();
+    }
+
+    private OnItemClickListener listener;
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -93,12 +104,21 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
         LinearLayout footer;
         ImageView album_art;
 
-        public ViewHolder(View itemView) {
+        public ViewHolder(final View itemView) {
             super(itemView);
             album_artist = (TextView) itemView.findViewById(R.id.album_artist);
             album_title = (TextView) itemView.findViewById(R.id.album_title);
             footer = (LinearLayout) itemView.findViewById(R.id.footer);
             album_art = (ImageView) itemView.findViewById(R.id.album_art);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        listener.onItemClick(itemView, getLayoutPosition());
+                    }
+                }
+            });
         }
     }
 }

@@ -3,6 +3,11 @@ package com.pqs.mediaplayer.utils;
 import android.content.ContentUris;
 import android.graphics.Color;
 import android.net.Uri;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+
+import com.pqs.mediaplayer.R;
 
 /**
  * Created by truongpq on 4/18/17.
@@ -18,5 +23,13 @@ public class Utils {
         if (darkness >= 0.5) {
             return Color.WHITE;
         } else return Color.BLACK;
+    }
+
+    public static void slideFragment(Fragment fragment, FragmentManager fragmentManager) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.slide_in_up, R.anim.slide_in_down, R.anim.slide_out_down, R.anim.slide_out_up);
+        transaction.add(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 }

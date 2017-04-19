@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 
 import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.dataloaders.AlbumLoader;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.AlbumsAdapter;
 
 import butterknife.BindView;
@@ -68,6 +70,12 @@ public class AlbumPageFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
+                adapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        Utils.slideFragment(AlbumDetailFragment.newInstance(adapter.getAlbum(position).getId()), getActivity().getSupportFragmentManager());
+                    }
+                });
                 rv_albums.setAdapter(adapter);
             }
         }.execute();

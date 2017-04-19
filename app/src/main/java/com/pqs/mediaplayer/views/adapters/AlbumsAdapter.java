@@ -25,13 +25,22 @@ import java.util.List;
  * Created by truongpq on 4/18/17.
  */
 
-public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder>{
+public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder> {
     private Context context;
     private List<Album> albums;
+    private boolean isList;
 
     public AlbumsAdapter(Context context, List<Album> albums) {
         this.context = context;
         this.albums = albums;
+    }
+
+    public boolean isList() {
+        return isList;
+    }
+
+    public void setList(boolean list) {
+        isList = list;
     }
 
     @Override
@@ -40,7 +49,12 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.ViewHolder
         LayoutInflater inflater = LayoutInflater.from(context);
 
         // Inflate the custom layout
-        View view = inflater.inflate(R.layout.item_album, parent, false);
+        View view;
+        if (isList) {
+            view = inflater.inflate(R.layout.item_album_list, parent, false);
+        } else {
+            view = inflater.inflate(R.layout.item_album, parent, false);
+        }
 
         // Return a new holder instance
         return new AlbumsAdapter.ViewHolder(view);

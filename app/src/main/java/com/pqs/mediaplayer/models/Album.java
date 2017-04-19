@@ -5,20 +5,31 @@ package com.pqs.mediaplayer.models;
  */
 
 public class Album {
-    public String artistName;
-    public long id;
-    public int songCount;
-    public String title;
-    public int year;
+    private String artistName;
+    private long artistID;
+    private long id;
+    private int songCount;
+    private String title;
+    private int year;
 
-    public Album() {}
+    public Album() {
+    }
 
-    public Album(String artistName, long id, int songCount, String title, int year) {
+    public Album(String artistName, long artistID, long id, int songCount, String title, int year) {
         this.artistName = artistName;
+        this.artistID = artistID;
         this.id = id;
         this.songCount = songCount;
         this.title = title;
         this.year = year;
+    }
+
+    public long getArtistID() {
+        return artistID;
+    }
+
+    public void setArtistID(long artistID) {
+        this.artistID = artistID;
     }
 
     public String getArtistName() {

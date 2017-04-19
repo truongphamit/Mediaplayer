@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.dataloaders.AlbumLoader;
 import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.models.Album;
 import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.AlbumsAdapter;
 
@@ -30,9 +31,9 @@ public class AlbumPageFragment extends Fragment {
     private AlbumsAdapter adapter;
 
     public static AlbumPageFragment newInstance() {
-        
+
         Bundle args = new Bundle();
-        
+
         AlbumPageFragment fragment = new AlbumPageFragment();
         fragment.setArguments(args);
         return fragment;
@@ -73,7 +74,8 @@ public class AlbumPageFragment extends Fragment {
                 adapter.setOnItemClickListener(new OnItemClickListener() {
                     @Override
                     public void onItemClick(View itemView, int position) {
-                        Utils.slideFragment(AlbumDetailFragment.newInstance(adapter.getAlbum(position).getId()), getActivity().getSupportFragmentManager());
+                        Album album = adapter.getAlbum(position);
+                        Utils.slideFragment(AlbumDetailFragment.newInstance(album.getTitle(), album.getId()), getActivity().getSupportFragmentManager());
                     }
                 });
                 rv_albums.setAdapter(adapter);

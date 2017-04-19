@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by truongpq on 4/19/17.
+ * Created by truongpq on 19/04/2017.
  */
 
-public class SongOfAlbumLoader {
+public class SongOfArtistLoader {
     private static final Uri MEDIA_URI = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
     private static final String WHERE = MediaStore.Audio.Media.IS_MUSIC + "=1 AND "
             + MediaStore.Audio.Media.SIZE + ">0";
@@ -35,10 +35,10 @@ public class SongOfAlbumLoader {
             MediaStore.Audio.Media.SIZE
     };
 
-    public static List<Song> getAllSongs(Context context, long albumId) {
+    public static List<Song> getAllSongs(Context context, long artistId) {
         return getSongForCursor(makeCursor(context,
                 PROJECTIONS,
-                WHERE + " AND " + MediaStore.Audio.Media.ALBUM_ID + "=" + albumId,
+                WHERE + " AND " + MediaStore.Audio.Media.ARTIST_ID + "=" + artistId,
                 null, ORDER_BY));
     }
 

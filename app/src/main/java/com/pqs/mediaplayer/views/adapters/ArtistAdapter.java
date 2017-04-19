@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
 import com.pqs.mediaplayer.models.Artist;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.List;
  * Created by truongpq on 4/18/17.
  */
 
-public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ViewHolder>{
+public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ViewHolder> {
     private Context context;
     private List<Artist> artists;
 
@@ -51,18 +52,39 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ViewHolder
         return artists.size();
     }
 
+    public Artist getArtist(int position) {
+        return artists.get(position);
+    }
+
+    private OnItemClickListener listener;
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView album_song_count;
         TextView artist_name;
         LinearLayout footer;
         ImageView artistImage;
 
-        public ViewHolder(View itemView) {
+        public ViewHolder(final View itemView) {
             super(itemView);
             album_song_count = (TextView) itemView.findViewById(R.id.album_artist);
             artist_name = (TextView) itemView.findViewById(R.id.album_title);
             footer = (LinearLayout) itemView.findViewById(R.id.footer);
             artistImage = (ImageView) itemView.findViewById(R.id.album_art);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        listener.onItemClick(itemView, getLayoutPosition());
+                    }
+                }
+            });
+
         }
     }
 }

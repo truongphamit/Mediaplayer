@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 
 import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.dataloaders.ArtistLoader;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.models.Artist;
+import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.ArtistAdapter;
 
 import butterknife.BindView;
@@ -28,9 +31,9 @@ public class ArtistsPageFragment extends Fragment {
     private ArtistAdapter adapter;
 
     public static ArtistsPageFragment newInstance() {
-        
+
         Bundle args = new Bundle();
-        
+
         ArtistsPageFragment fragment = new ArtistsPageFragment();
         fragment.setArguments(args);
         return fragment;
@@ -68,6 +71,13 @@ public class ArtistsPageFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
+                adapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        Artist artist = adapter.getArtist(position);
+                        Utils.slideFragment(ArtistDetailFragment.newInstance(artist.getName(), artist.getId()), getActivity().getSupportFragmentManager());
+                    }
+                });
                 rv_artists.setAdapter(adapter);
             }
         }.execute();

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
 import com.pqs.mediaplayer.models.Song;
 import com.pqs.mediaplayer.utils.TimeUtils;
 import com.pqs.mediaplayer.utils.Utils;
@@ -56,19 +57,32 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
         return songs.size();
     }
 
+    private OnItemClickListener listener;
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView text_view_name;
         TextView text_view_artist;
         TextView text_view_duration;
         ImageView albumArt;
 
-        public ViewHolder(View itemView) {
+        public ViewHolder(final View itemView) {
             super(itemView);
 
             text_view_name = (TextView) itemView.findViewById(R.id.text_view_name);
             text_view_artist = (TextView) itemView.findViewById(R.id.text_view_artist);
             text_view_duration = (TextView) itemView.findViewById(R.id.text_view_duration);
             albumArt = (ImageView) itemView.findViewById(R.id.albumArt);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) listener.onItemClick(itemView, getLayoutPosition());
+                }
+            });
         }
     }
 }

@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 
 import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.dataloaders.SongLoader;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.SongsAdapter;
 
 import butterknife.BindView;
@@ -75,6 +77,13 @@ public class SongsPageFragment extends Fragment {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 rv_songs.setAdapter(adapter);
+
+                adapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
+                    }
+                });
             }
         }.execute();
     }

@@ -45,6 +45,12 @@ public class Utils {
         transaction.commit();
     }
 
+    public static void slideFragmentWithoutAddBackStack(Fragment fragment, FragmentManager fragmentManager) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.add(R.id.fragment_container, fragment);
+        transaction.commit();
+    }
+
     public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
         final ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         final List<ActivityManager.RunningServiceInfo> services = activityManager.getRunningServices(Integer.MAX_VALUE);

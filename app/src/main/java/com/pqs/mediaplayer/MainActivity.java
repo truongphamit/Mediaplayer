@@ -1,20 +1,19 @@
 package com.pqs.mediaplayer;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
-import android.net.Uri;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -26,35 +25,58 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.pqs.mediaplayer.activities.ActivityCallback;
 import com.pqs.mediaplayer.activities.SearchActivity;
 import com.pqs.mediaplayer.activities.SettingsActivity;
+import com.pqs.mediaplayer.fragments.AlbumDetailFragment;
 import com.pqs.mediaplayer.fragments.AlbumPageFragment;
+import com.pqs.mediaplayer.fragments.ArtistDetailFragment;
 import com.pqs.mediaplayer.fragments.ArtistsPageFragment;
-import com.pqs.mediaplayer.fragments.GenresPageFragment;
 import com.pqs.mediaplayer.fragments.NowPlayingFragment;
-import com.pqs.mediaplayer.fragments.SettingsFragment;
 import com.pqs.mediaplayer.fragments.SongsPageFragment;
 import com.pqs.mediaplayer.fragments.SuggestedPageFragment;
-import com.pqs.mediaplayer.models.Song;
 import com.pqs.mediaplayer.player.PlaybackService;
-import com.pqs.mediaplayer.utils.FileUtils;
+import com.pqs.mediaplayer.utils.Constants;
 import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.PagerAdapter;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ActivityCallback {
 
-    private static final String TAG = "MAINACTIVITY";
+    public static final int PERMISSIONS_REQUEST = 2;
 
     private PlaybackService mPlaybackService;
     private boolean mIsServiceBound;
+
+    Map<String, Runnable> actionMaps = new HashMap<>();
+
+    Runnable navigateAlbum = new Runnable() {
+        public void run() {
+            long albumID = getIntent().getExtras().getLong(Constants.ALBUM_ID);
+            String album = getIntent().getExtras().getString(Constants.ALBUM);
+            Utils.slideFragmentWithoutAddBackStack(AlbumDetailFragment.newInstance(album, albumID), getSupportFragmentManager());
+        }
+    };
+    Runnable navigateArtist = new Runnable() {
+        public void run() {
+            long artistID = getIntent().getExtras().getLong(Constants.ARTIST_ID);
+            String artist = getIntent().getExtras().getString(Constants.ARTIST);
+            Utils.slideFragmentWithoutAddBackStack(ArtistDetailFragment.newInstance(artist, artistID), getSupportFragmentManager());
+        }
+    };
+    Runnable navigateNowPlaying = new Runnable() {
+        public void run() {
+            Utils.slideFragmentWithoutAddBackStack(NowPlayingFragment.newInstance(), getSupportFragmentManager());
+        }
+    };
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -66,7 +88,9 @@ public class MainActivity extends AppCompatActivity
             mPlaybackService = ((PlaybackService.LocalBinder) service).getService();
             mIsServiceBound = true;
 
-            init();
+            if (isPermissionGranted()) {
+                init();
+            }
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -101,6 +125,12 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        requestPermission();
+
+        actionMaps.put(Constants.NAVIGATE_ALBUM, navigateAlbum);
+        actionMaps.put(Constants.NAVIGATE_ARTIST, navigateArtist);
+        actionMaps.put(Constants.NAVIGATE_NOWPLAYING, navigateNowPlaying);
     }
 
     @Override
@@ -168,6 +198,25 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    init();
+                } else {
+                    // Show Dialog setting request permissiion
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+        }
+    }
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -190,6 +239,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void init() {
+        Runnable navigation = actionMaps.get(getIntent().getAction());
+        if (navigation != null) {
+            navigation.run();
+        }
+
         List<Fragment> fragments = new ArrayList<>();
         fragments.add(SongsPageFragment.newInstance());
         fragments.add(AlbumPageFragment.newInstance());
@@ -205,6 +259,7 @@ public class MainActivity extends AppCompatActivity
         tabs.setupWithViewPager(viewpager);
     }
 
+    @Override
     public PlaybackService getmPlaybackService() {
         return mPlaybackService;
     }
@@ -215,6 +270,30 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(Utils.createEffectsIntent(), 111);
         } catch (final ActivityNotFoundException notFound) {
             Toast.makeText(this, "Equalizer not found", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void requestPermission() {
+        if (isPermissionGranted()) {
+
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST);
+        }
+    }
+
+    private boolean isPermissionGranted() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                // Show Dialog setting request permissiion
+                return false;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
         }
     }
 }

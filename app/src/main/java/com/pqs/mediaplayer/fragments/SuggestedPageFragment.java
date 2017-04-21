@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 
 import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.activities.ActivityCallback;
 import com.pqs.mediaplayer.dataloaders.SongLoader;
 import com.pqs.mediaplayer.player.PlaybackService;
 import com.pqs.mediaplayer.views.adapters.SongsAdapter;
@@ -41,9 +42,9 @@ public class SuggestedPageFragment extends Fragment {
     private PlaybackService playbackService;
 
     public static SuggestedPageFragment newInstance() {
-        
+
         Bundle args = new Bundle();
-        
+
         SuggestedPageFragment fragment = new SuggestedPageFragment();
         fragment.setArguments(args);
         return fragment;
@@ -58,7 +59,7 @@ public class SuggestedPageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view =  inflater.inflate(R.layout.fragment_suggested_page, container, false);
+        View view = inflater.inflate(R.layout.fragment_suggested_page, container, false);
         ButterKnife.bind(this, view);
         setupToolbar();
         init();
@@ -74,7 +75,7 @@ public class SuggestedPageFragment extends Fragment {
     }
 
     private void init() {
-        playbackService = ((MainActivity) getActivity()).getmPlaybackService();
+        playbackService = ((ActivityCallback) getActivity()).getmPlaybackService();
 
         rv_most_played.setLayoutManager(new LinearLayoutManager(getActivity()));
         rv_recent_played.setLayoutManager(new LinearLayoutManager(getActivity()));

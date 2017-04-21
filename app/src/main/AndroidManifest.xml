@@ -41,7 +41,10 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".activities.SearchActivity"></activity>
+        <activity
+            android:name=".activities.SearchActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.activities.ActivityCallback;
 import com.pqs.mediaplayer.dataloaders.AlbumOfArtistLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfAlbumLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfArtistLoader;
@@ -89,7 +90,7 @@ public class ArtistDetailFragment extends Fragment {
     }
 
     private void init() {
-        playbackService = ((MainActivity) getActivity()).getmPlaybackService();
+        playbackService = ((ActivityCallback) getActivity()).getmPlaybackService();
 
         rv_songs.setLayoutManager(new LinearLayoutManager(getActivity()));
         rv_albums.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));

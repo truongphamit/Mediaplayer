@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.activities.ActivityCallback;
 import com.pqs.mediaplayer.models.Song;
 import com.pqs.mediaplayer.player.IPlayback;
 import com.pqs.mediaplayer.player.PlayMode;
@@ -118,8 +119,7 @@ public class NowPlayingFragment extends Fragment implements IPlayback.Callback {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        MainActivity activity = (MainActivity) getActivity();
-        playbackService = activity.getmPlaybackService();
+        playbackService = ((ActivityCallback) getActivity()).getmPlaybackService();
     }
 
     @Override

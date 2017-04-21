@@ -1,7 +1,11 @@
 package com.pqs.mediaplayer.activities;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +27,8 @@ import com.pqs.mediaplayer.dataloaders.SongLoader;
 import com.pqs.mediaplayer.models.Album;
 import com.pqs.mediaplayer.models.Artist;
 import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.player.PlaybackService;
+import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.SearchAdapter;
 
 import java.util.ArrayList;
@@ -31,7 +37,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, View.OnTouchListener {
+public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, View.OnTouchListener, ActivityCallback {
 
     private final Executor mSearchExecutor = Executors.newSingleThreadExecutor();
     @Nullable
@@ -46,6 +52,30 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
 
     private List<Object> searchResults = Collections.emptyList();
 
+    private PlaybackService mPlaybackService;
+    private boolean mIsServiceBound;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mPlaybackService = ((PlaybackService.LocalBinder) service).getService();
+            mIsServiceBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mPlaybackService = null;
+            mIsServiceBound = false;
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -56,56 +86,84 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new SearchAdapter(this);
         recyclerView.setAdapter(adapter);
+
+        adapter.setOnItemClickListener(new SearchAdapter.OnItemClickListener() {
+            @Override
+            public void onSongItemClick(View itemView, Song song) {
+                if (mPlaybackService != null) mPlaybackService.play(song);
+            }
+        });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = new Intent(this, PlaybackService.class);
+        if (!Utils.isServiceRunning(this, PlaybackService.class)) {
+            startService(intent);
+        }
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(final Menu menu) {
-//
-//        getMenuInflater().inflate(R.menu.menu_search, menu);
-//
-//        mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.menu_search));
-//
-//        mSearchView.setOnQueryTextListener(this);
-//        mSearchView.setQueryHint(getString(R.string.search_library));
-//
-//        mSearchView.setIconifiedByDefault(false);
-//        mSearchView.setIconified(false);
-//
-//        MenuItemCompat.setOnActionExpandListener(menu.findItem(R.id.menu_search), new MenuItemCompat.OnActionExpandListener() {
-//            @Override
-//            public boolean onMenuItemActionExpand(MenuItem item) {
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onMenuItemActionCollapse(MenuItem item) {
-//                finish();
-//                return false;
-//            }
-//        });
-//
-//        menu.findItem(R.id.menu_search).expandActionView();
-//        return super.onCreateOptionsMenu(menu);
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(final MenuItem item) {
-//        switch (item.getItemId()) {
-//            case android.R.id.home:
-//                finish();
-//                return true;
-//            default:
-//                break;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mIsServiceBound) {
+            unbindService(mConnection);
+            mIsServiceBound = false;
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+
+        mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.menu_search));
+
+        mSearchView.setOnQueryTextListener(this);
+        mSearchView.setQueryHint(getString(R.string.search_library));
+
+        mSearchView.setIconifiedByDefault(false);
+        mSearchView.setIconified(false);
+
+        MenuItemCompat.setOnActionExpandListener(menu.findItem(R.id.menu_search), new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                finish();
+                return false;
+            }
+        });
+
+        menu.findItem(R.id.menu_search).expandActionView();
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public boolean onQueryTextSubmit(final String query) {
@@ -157,12 +215,15 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
                 mImm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
             }
             mSearchView.clearFocus();
-
-//            SearchHistory.getInstance(this).addSearchString(queryString);
         }
     }
 
-    private class SearchTask extends AsyncTask<String,Void,ArrayList<Object>> {
+    @Override
+    public PlaybackService getmPlaybackService() {
+        return mPlaybackService;
+    }
+
+    private class SearchTask extends AsyncTask<String, Void, ArrayList<Object>> {
 
         @Override
         protected ArrayList<Object> doInBackground(String... params) {

@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.activities.ActivityCallback;
 import com.pqs.mediaplayer.dataloaders.SongLoader;
 import com.pqs.mediaplayer.listener.OnItemClickListener;
 import com.pqs.mediaplayer.models.PlayList;
@@ -65,7 +66,7 @@ public class SongsPageFragment extends Fragment {
     }
 
     private void init() {
-        playbackService = ((MainActivity) getActivity()).getmPlaybackService();
+        playbackService = ((ActivityCallback) getActivity()).getmPlaybackService();
 
         rv_songs.setLayoutManager(new LinearLayoutManager(getActivity()));
         loadSongs();

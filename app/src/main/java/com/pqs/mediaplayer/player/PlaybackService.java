@@ -3,16 +3,23 @@ package com.pqs.mediaplayer.player;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
+import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
+import com.pqs.mediaplayer.fragments.SettingsFragment;
 import com.pqs.mediaplayer.models.PlayList;
 import com.pqs.mediaplayer.models.Song;
 import com.pqs.mediaplayer.utils.AlbumUtils;
@@ -23,16 +30,17 @@ import com.pqs.mediaplayer.utils.AlbumUtils;
 
 public class PlaybackService extends Service implements IPlayback, IPlayback.Callback {
 
-    private static final String ACTION_PLAY_TOGGLE = "io.github.ryanhoo.music.ACTION.PLAY_TOGGLE";
-    private static final String ACTION_PLAY_LAST = "io.github.ryanhoo.music.ACTION.PLAY_LAST";
-    private static final String ACTION_PLAY_NEXT = "io.github.ryanhoo.music.ACTION.PLAY_NEXT";
-    private static final String ACTION_STOP_SERVICE = "io.github.ryanhoo.music.ACTION.STOP_SERVICE";
+    private static final String ACTION_PLAY_TOGGLE = "ACTION.PLAY_TOGGLE";
+    private static final String ACTION_PLAY_LAST = "ACTION.PLAY_LAST";
+    private static final String ACTION_PLAY_NEXT = "ACTION.PLAY_NEXT";
+    private static final String ACTION_STOP_SERVICE = "ACTION.STOP_SERVICE";
 
     private static final int NOTIFICATION_ID = 1;
 
     private RemoteViews mContentViewBig, mContentViewSmall;
 
     private Player mPlayer;
+    private HeadsetReceiver headsetReceiver;
 
     private final Binder mBinder = new LocalBinder();
 
@@ -47,6 +55,10 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
         super.onCreate();
         mPlayer = Player.getInstance();
         mPlayer.registerCallback(this);
+
+        headsetReceiver = new HeadsetReceiver();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(headsetReceiver, filter);
     }
 
     @Override
@@ -74,6 +86,34 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
         return START_STICKY;
     }
 
+    private class HeadsetReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(PlaybackService.this);
+                int state = intent.getIntExtra("state", -1);
+                switch (state) {
+                    case 0:
+//                        Headset is unplugged
+                        if (preferences.getBoolean(SettingsFragment.KEY_PAUSE_ON_DISCONNECT, false)) {
+                            if (isPlaying()) {
+                                pause();
+                            }
+                        }
+                        break;
+                    case 1:
+//                        Headset is plugged
+                        if (preferences.getBoolean(SettingsFragment.KEY_RESUME_ON_CONNECT, false)) {
+                            if (!isPlaying()) {
+                                play();
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -90,6 +130,7 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
     @Override
     public void onDestroy() {
         releasePlayer();
+        unregisterReceiver(headsetReceiver);
         super.onDestroy();
     }
 

@@ -16,12 +16,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.dataloaders.AlbumOfArtistLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfAlbumLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfArtistLoader;
 import com.pqs.mediaplayer.listener.OnItemClickListener;
 import com.pqs.mediaplayer.models.Album;
+import com.pqs.mediaplayer.models.PlayList;
+import com.pqs.mediaplayer.player.PlaybackService;
 import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.AlbumsAdapter;
 import com.pqs.mediaplayer.views.adapters.SongsAdapter;
@@ -48,6 +51,8 @@ public class ArtistDetailFragment extends Fragment {
 
     private SongsAdapter songsAdapter;
     private AlbumsAdapter albumsAdapter;
+    private PlaybackService playbackService;
+
 
     public static ArtistDetailFragment newInstance(String artist, long artistId) {
 
@@ -84,6 +89,8 @@ public class ArtistDetailFragment extends Fragment {
     }
 
     private void init() {
+        playbackService = ((MainActivity) getActivity()).getmPlaybackService();
+
         rv_songs.setLayoutManager(new LinearLayoutManager(getActivity()));
         rv_albums.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         loadSongs();
@@ -111,6 +118,17 @@ public class ArtistDetailFragment extends Fragment {
                     public void onItemClick(View itemView, int position) {
                         Album album = albumsAdapter.getAlbum(position);
                         Utils.slideFragment(AlbumDetailFragment.newInstance(album.getTitle(), album.getId()), getActivity().getSupportFragmentManager());
+                    }
+                });
+
+                songsAdapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        PlayList playList = new PlayList();
+                        playList.setSongs(songsAdapter.getAllSong());
+                        playList.setNumOfSongs(songsAdapter.getAllSong().size());
+                        playbackService.play(playList, position);
+                        Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
                     }
                 });
             }

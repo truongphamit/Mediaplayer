@@ -27,10 +27,18 @@ public class AlbumLoader {
     };
 
     public static List<Album> getAllAlbums(Context context) {
-        return getSongForCursor(makeAlbumCursor(context, PROJECTIONS, null, null, ORDER_BY));
+        return getAlbumsForCursor(makeAlbumCursor(context, PROJECTIONS, null, null, ORDER_BY));
     }
 
-    public static List<Album> getSongForCursor(Cursor data) {
+    public static List<Album> getAlbums(Context context, String paramString, int limit) {
+        List<Album> result = getAlbumsForCursor(makeAlbumCursor(context, PROJECTIONS,  " album LIKE ?", new String[]{paramString + "%"}, ORDER_BY));
+        if (result.size() < limit) {
+            result.addAll(getAlbumsForCursor(makeAlbumCursor(context, PROJECTIONS, "album LIKE ?", new String[]{"%_" + paramString + "%"}, ORDER_BY)));
+        }
+        return result.size() < limit ? result : result.subList(0, limit);
+    }
+
+    public static List<Album> getAlbumsForCursor(Cursor data) {
         List<Album> albums = new ArrayList<>();
         if (data != null && data.getCount() > 0) {
             data.moveToFirst();

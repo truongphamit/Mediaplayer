@@ -42,6 +42,14 @@ public class SongLoader {
         return getSongForCursor(makeSongCursor(context, PROJECTIONS, WHERE, null, ORDER_BY));
     }
 
+    public static List<Song> searchSongs(Context context, String searchString, int limit) {
+        List<Song> result = getSongForCursor(makeSongCursor(context, PROJECTIONS, WHERE + " AND title LIKE ?", new String[]{searchString + "%"}, ORDER_BY));
+        if (result.size() < limit) {
+            result.addAll(getSongForCursor(makeSongCursor(context, PROJECTIONS, WHERE + " AND title LIKE ?", new String[]{"%_" + searchString + "%"}, ORDER_BY)));
+        }
+        return result.size() < limit ? result : result.subList(0, limit);
+    }
+
     public static List<Song> getSongForCursor(Cursor data) {
         List<Song> songs = new ArrayList<>();
         if (data != null && data.getCount() > 0) {

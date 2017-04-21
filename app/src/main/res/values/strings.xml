@@ -21,4 +21,10 @@
     <string name="delete_from_device">Delete from device</string>
     <string name="now_playing">Now Playing</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="search">Search</string>
+    <string name="suggested">Suggested</string>
+    <string name="most_played">Most played</string>
+    <string name="top_20_songs">Top 20 Songs</string>
+    <string name="recent">Recent</string>
+    <string name="recently_played_songs">Recently played songs</string>
 </resources>

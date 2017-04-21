@@ -25,10 +25,18 @@ public class ArtistLoader {
     };
 
     public static List<Artist> getAllArtists(Context context) {
-        return getSongForCursor(makeCursor(context, PROJECTIONS, null, null, ORDER_BY));
+        return getArtistsForCursor(makeCursor(context, PROJECTIONS, null, null, ORDER_BY));
     }
 
-    public static List<Artist> getSongForCursor(Cursor data) {
+    public static List<Artist> getArtists(Context context, String paramString, int limit) {
+        List<Artist> result = getArtistsForCursor(makeCursor(context, PROJECTIONS, "artist LIKE ?", new String[]{paramString + "%"}, ORDER_BY));
+        if (result.size() < limit) {
+            result.addAll(getArtistsForCursor(makeCursor(context, PROJECTIONS, "artist LIKE ?", new String[]{"%_" + paramString + "%"}, ORDER_BY)));
+        }
+        return result.size() < limit ? result : result.subList(0, limit);
+    }
+
+    public static List<Artist> getArtistsForCursor(Cursor data) {
         List<Artist> artists = new ArrayList<>();
         if (data != null && data.getCount() > 0) {
             data.moveToFirst();

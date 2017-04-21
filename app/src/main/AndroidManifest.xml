@@ -3,6 +3,7 @@
     package="com.pqs.mediaplayer">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -14,6 +15,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +26,22 @@
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <service
+            android:name=".player.PlaybackService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="ACTION.PLAY_TOGGLE" />
+                <action android:name="ACTION.PLAY_LAST" />
+                <action android:name="ACTION.PLAY_NEXT" />
+                <action android:name="ACTION.STOP_SERVICE" />
+            </intent-filter>
+        </service>
+
+        <activity android:name=".activities.SearchActivity"></activity>
     </application>
 
 </manifest>

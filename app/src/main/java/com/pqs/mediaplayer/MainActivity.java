@@ -1,9 +1,14 @@
 package com.pqs.mediaplayer;
 
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -19,7 +24,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.pqs.mediaplayer.activities.SearchActivity;
 import com.pqs.mediaplayer.activities.SettingsActivity;
 import com.pqs.mediaplayer.fragments.AlbumPageFragment;
 import com.pqs.mediaplayer.fragments.ArtistsPageFragment;
@@ -29,6 +36,7 @@ import com.pqs.mediaplayer.fragments.SettingsFragment;
 import com.pqs.mediaplayer.fragments.SongsPageFragment;
 import com.pqs.mediaplayer.fragments.SuggestedPageFragment;
 import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.player.PlaybackService;
 import com.pqs.mediaplayer.utils.FileUtils;
 import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.PagerAdapter;
@@ -44,6 +52,32 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MAINACTIVITY";
+
+    private PlaybackService mPlaybackService;
+    private boolean mIsServiceBound;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mPlaybackService = ((PlaybackService.LocalBinder) service).getService();
+            mIsServiceBound = true;
+
+            init();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mPlaybackService = null;
+            mIsServiceBound = false;
+        }
+    };
 
     @BindView(R.id.tabs)
     TabLayout tabs;
@@ -67,8 +101,26 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
 
-        init();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = new Intent(this, PlaybackService.class);
+        if (!Utils.isServiceRunning(this, PlaybackService.class)) {
+            startService(intent);
+        }
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mIsServiceBound) {
+            unbindService(mConnection);
+            mIsServiceBound = false;
+        }
     }
 
     @Override
@@ -85,6 +137,9 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        if (!Utils.hasEffectsPanel(this)) {
+            menu.removeItem(R.id.action_equalizer);
+        }
         return true;
     }
 
@@ -96,9 +151,19 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == android.R.id.home) {
-            onBackPressed();
+
+        switch (id) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case R.id.action_equalizer:
+                navigateToEqualizer();
+                break;
+            case R.id.action_search:
+                startActivity(new Intent(this, SearchActivity.class));
+                break;
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -109,7 +174,9 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_playlists) {
+        if (id == R.id.nav_suggested) {
+            Utils.slideFragment(SuggestedPageFragment.newInstance(), getSupportFragmentManager());
+        } else if (id == R.id.nav_playlists) {
 
         } else if (id == R.id.nav_now_playing) {
             Utils.slideFragment(NowPlayingFragment.newInstance(), getSupportFragmentManager());
@@ -136,5 +203,18 @@ public class MainActivity extends AppCompatActivity
         viewpager.setAdapter(new PagerAdapter(getSupportFragmentManager(), this, fragments, titles));
         viewpager.setOffscreenPageLimit(2);
         tabs.setupWithViewPager(viewpager);
+    }
+
+    public PlaybackService getmPlaybackService() {
+        return mPlaybackService;
+    }
+
+    public void navigateToEqualizer() {
+        try {
+            // The google MusicFX apps need to be started using startActivityForResult
+            startActivityForResult(Utils.createEffectsIntent(), 111);
+        } catch (final ActivityNotFoundException notFound) {
+            Toast.makeText(this, "Equalizer not found", Toast.LENGTH_SHORT).show();
+        }
     }
 }

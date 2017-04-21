@@ -92,7 +92,6 @@ public class Player implements IPlayback, MediaPlayer.OnCompletionListener {
     @Override
     public boolean play(PlayList list, int startIndex) {
         if (list == null || startIndex < 0 || startIndex >= list.getNumOfSongs()) return false;
-
         isPaused = false;
         list.setPlayingIndex(startIndex);
         setPlayList(list);

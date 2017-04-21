@@ -1,7 +1,5 @@
 package com.pqs.mediaplayer.fragments;
 
-
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -18,9 +16,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
-import com.pqs.mediaplayer.dataloaders.SongLoader;
 import com.pqs.mediaplayer.dataloaders.SongOfAlbumLoader;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.models.PlayList;
+import com.pqs.mediaplayer.player.PlaybackService;
 import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.SongsAdapter;
 
@@ -44,6 +45,7 @@ public class AlbumDetailFragment extends Fragment {
     @BindView(R.id.album_art)
     ImageView album_art;
 
+    private PlaybackService playbackService;
     private SongsAdapter adapter;
 
     public static AlbumDetailFragment newInstance(String album, long albumId) {
@@ -80,6 +82,8 @@ public class AlbumDetailFragment extends Fragment {
     }
 
     private void init() {
+        playbackService = ((MainActivity) getActivity()).getmPlaybackService();
+
         rv_songs.setLayoutManager(new LinearLayoutManager(getActivity()));
         Glide.with(getActivity()).load(Utils.getAlbumArtUri(getArguments().getLong(MediaStore.Audio.Media.ALBUM_ID))).placeholder(R.drawable.ic_empty).into(album_art);
         loadSongs();
@@ -98,6 +102,17 @@ public class AlbumDetailFragment extends Fragment {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 rv_songs.setAdapter(adapter);
+
+                adapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        PlayList playList = new PlayList();
+                        playList.setSongs(adapter.getAllSong());
+                        playList.setNumOfSongs(adapter.getAllSong().size());
+                        playbackService.play(playList, position);
+                        Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
+                    }
+                });
             }
         }.execute();
     }

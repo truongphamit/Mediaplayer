@@ -48,7 +48,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         final Song song = songs.get(position);
         holder.text_view_name.setText(song.getDisplayName());
         holder.text_view_artist.setText(song.getArtist());
@@ -64,8 +64,6 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
-                            case R.id.option_play:
-                                break;
                             case R.id.option_add_to_playlist:
                                 break;
                             case R.id.option_go_to_album:
@@ -75,6 +73,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
                                 Utils.slideFragment(ArtistDetailFragment.newInstance(song.getArtist(), song.getArtistId()), ((MainActivity) context).getSupportFragmentManager());
                                 break;
                             case R.id.option_delete_from_device:
+                                Utils.showDeleteDialog(context, song.getDisplayName(), SongsAdapter.this, position);
                                 break;
                         }
                         return false;
@@ -90,6 +89,14 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
     @Override
     public int getItemCount() {
         return songs.size();
+    }
+
+    public Song getSong(int position) {
+        return songs.get(position);
+    }
+
+    public List<Song> getAllSong() {
+        return songs;
     }
 
     private OnItemClickListener listener;

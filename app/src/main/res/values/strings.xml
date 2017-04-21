@@ -28,4 +28,6 @@
     <string name="recent">Recent</string>
     <string name="recently_played_songs">Recently played songs</string>
     <string name="search_library">Search Library</string>
+    <string name="access_grant">Please allow we  to access photos, media, and files on your device!</string>
+    <string name="grant">Grant</string>
 </resources>

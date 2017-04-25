@@ -62,6 +62,7 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
                         @Override
                         public void onFinish() {
                             pause();
+                            preferences.edit().putInt(SettingsFragment.KEY_SLEEP_TIMER, 0).apply();
                         }
                     }.start();
                 }

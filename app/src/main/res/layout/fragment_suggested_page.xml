@@ -58,6 +58,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/more_most_played"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
@@ -104,6 +105,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/more_recent_played"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"

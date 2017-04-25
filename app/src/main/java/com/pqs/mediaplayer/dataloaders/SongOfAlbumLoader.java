@@ -20,6 +20,7 @@ public class SongOfAlbumLoader {
             + MediaStore.Audio.Media.SIZE + ">0";
     private static final String ORDER_BY = MediaStore.Audio.Media.DISPLAY_NAME + " ASC";
     private static String[] PROJECTIONS = {
+            MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DATA, // the real path
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.DISPLAY_NAME,
@@ -57,6 +58,7 @@ public class SongOfAlbumLoader {
 
     private static Song cursorToMusic(Cursor cursor) {
         Song song = new Song();
+        song.setId(cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)));
         song.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)));
         String displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
         if (displayName.endsWith(".mp3")) {

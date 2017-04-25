@@ -88,6 +88,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ItemHolder
                             public boolean onMenuItemClick(MenuItem item) {
                                 switch (item.getItemId()) {
                                     case R.id.option_add_to_playlist:
+                                        Utils.showAddPlaylistDialog(mContext, song.getId());
                                         break;
                                     case R.id.option_go_to_album:
                                         goToAlbum(mContext, song.getAlbum(), song.getAlbumId());
@@ -96,7 +97,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ItemHolder
                                         goToArtist(mContext, song.getArtist(), song.getArtistId());
                                         break;
                                     case R.id.option_delete_from_device:
-                                        Utils.showDeleteDialog(mContext, song.getDisplayName(), SearchAdapter.this, i);
+                                        int[] deleteIds = {song.getId()};
+                                        Utils.showDeleteDialog(mContext, song.getDisplayName(), deleteIds, SearchAdapter.this, i);
                                         break;
                                 }
                                 return false;

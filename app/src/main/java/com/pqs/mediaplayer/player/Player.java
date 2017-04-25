@@ -1,11 +1,14 @@
 package com.pqs.mediaplayer.player;
 
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.pqs.mediaplayer.models.PlayList;
 import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.provider.RecentStore;
+import com.pqs.mediaplayer.provider.SongPlayCount;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +26,11 @@ public class Player implements IPlayback, MediaPlayer.OnCompletionListener {
 
     private MediaPlayer mPlayer;
 
+    private Context context;
+
+    private RecentStore recentStore;
+    private SongPlayCount songPlayCount;
+
     private PlayList mPlayList;
     // Default size 2: for service and UI
     private List<Callback> mCallbacks = new ArrayList<>(2);
@@ -30,17 +38,22 @@ public class Player implements IPlayback, MediaPlayer.OnCompletionListener {
     // Player status
     private boolean isPaused;
 
-    private Player() {
+    private Player(Context context) {
         mPlayer = new MediaPlayer();
         mPlayList = new PlayList();
         mPlayer.setOnCompletionListener(this);
+
+        this.context = context;
+
+        recentStore = RecentStore.getInstance(context);
+        songPlayCount = SongPlayCount.getInstance(context);
     }
 
-    public static Player getInstance() {
+    public static Player getInstance(Context context) {
         if (sInstance == null) {
             synchronized (Player.class) {
                 if (sInstance == null) {
-                    sInstance = new Player();
+                    sInstance = new Player(context);
                 }
             }
         }
@@ -64,6 +77,8 @@ public class Player implements IPlayback, MediaPlayer.OnCompletionListener {
         }
         if (mPlayList.prepare()) {
             Song song = mPlayList.getCurrentSong();
+            recentStore.addSongId(song.getId());
+            songPlayCount.bumpSongCount(song.getId());
             try {
                 mPlayer.reset();
                 mPlayer.setDataSource(song.getPath());

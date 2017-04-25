@@ -11,10 +11,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.design.widget.NavigationView;
@@ -27,18 +29,26 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.pqs.mediaplayer.activities.ActivityCallback;
 import com.pqs.mediaplayer.activities.SearchActivity;
 import com.pqs.mediaplayer.activities.SettingsActivity;
+import com.pqs.mediaplayer.dataloaders.SongLoader;
+import com.pqs.mediaplayer.dataloaders.TopTracksLoader;
 import com.pqs.mediaplayer.fragments.AlbumDetailFragment;
 import com.pqs.mediaplayer.fragments.AlbumPageFragment;
 import com.pqs.mediaplayer.fragments.ArtistDetailFragment;
 import com.pqs.mediaplayer.fragments.ArtistsPageFragment;
 import com.pqs.mediaplayer.fragments.NowPlayingFragment;
+import com.pqs.mediaplayer.fragments.PlaylistFragment;
 import com.pqs.mediaplayer.fragments.SongsPageFragment;
 import com.pqs.mediaplayer.fragments.SuggestedPageFragment;
+import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.player.IPlayback;
 import com.pqs.mediaplayer.player.PlaybackService;
 import com.pqs.mediaplayer.utils.Constants;
 import com.pqs.mediaplayer.utils.Utils;
@@ -51,14 +61,33 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ActivityCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, ActivityCallback, IPlayback.Callback {
+
+    @BindView(R.id.bottom_bar_player)
+    View bottom_bar_player;
+
+    @BindView(R.id.tv_playbar_title)
+    TextView tv_playbar_title;
+
+    @BindView(R.id.tv_playbar_author)
+    TextView tv_playbar_author;
+
+    @BindView(R.id.btn_playbar_prev)
+    ImageView btn_playbar_prev;
+
+    @BindView(R.id.btn_playbar_play)
+    ImageView btn_playbar_play;
+
+    @BindView(R.id.btn_playbar_next)
+    ImageView btn_playbar_next;
+
+    @BindView(R.id.albumArt)
+    ImageView albumArt;
 
     public static final int PERMISSIONS_REQUEST = 2;
-
-    private PlaybackService mPlaybackService;
-    private boolean mIsServiceBound;
 
     Map<String, Runnable> actionMaps = new HashMap<>();
 
@@ -82,6 +111,9 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+    private PlaybackService mPlaybackService;
+    private boolean mIsServiceBound;
+
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             // This is called when the connection with the service has been
@@ -91,10 +123,13 @@ public class MainActivity extends AppCompatActivity
             // cast its IBinder to a concrete class and directly access it.
             mPlaybackService = ((PlaybackService.LocalBinder) service).getService();
             mIsServiceBound = true;
+            mPlaybackService.registerCallback(MainActivity.this);
 
             if (isPermissionGranted()) {
                 init();
             }
+
+            updatePlaybar();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -147,6 +182,15 @@ public class MainActivity extends AppCompatActivity
         actionMaps.put(Constants.NAVIGATE_ALBUM, navigateAlbum);
         actionMaps.put(Constants.NAVIGATE_ARTIST, navigateArtist);
         actionMaps.put(Constants.NAVIGATE_NOWPLAYING, navigateNowPlaying);
+
+        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                    updatePlaybar();
+                }
+            }
+        });
     }
 
     @Override
@@ -163,6 +207,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
+
+        mPlaybackService.unregisterCallback(this);
 
         if (mIsServiceBound) {
             unbindService(mConnection);
@@ -209,6 +255,9 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_search:
                 startActivity(new Intent(this, SearchActivity.class));
                 break;
+            case R.id.action_sleep_timer:
+                Utils.showSleepTimerDialog(this);
+                break;
         }
 
 
@@ -245,7 +294,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_suggested) {
             Utils.slideFragment(SuggestedPageFragment.newInstance(), getSupportFragmentManager());
         } else if (id == R.id.nav_playlists) {
-
+            Utils.slideFragment(PlaylistFragment.newInstance(), getSupportFragmentManager());
         } else if (id == R.id.nav_now_playing) {
             Utils.slideFragment(NowPlayingFragment.newInstance(), getSupportFragmentManager());
         } else if (id == R.id.nav_settings) {
@@ -255,6 +304,54 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @OnClick(R.id.bottom_bar_player)
+    public void now_playing(View view) {
+        Utils.slideFragment(NowPlayingFragment.newInstance(), getSupportFragmentManager());
+    }
+
+    @OnClick(R.id.btn_playbar_play)
+    public void onPlayAction(View view) {
+        if (mPlaybackService == null) return;
+
+        if (mPlaybackService.isPlaying()) {
+            mPlaybackService.pause();
+        } else {
+            mPlaybackService.play();
+        }
+    }
+
+    @OnClick(R.id.btn_playbar_next)
+    public void onNextAction(View view) {
+        if (mPlaybackService == null) return;
+        mPlaybackService.playNext();
+    }
+
+    @OnClick(R.id.btn_playbar_prev)
+    public void onPreAction(View view) {
+        if (mPlaybackService == null) return;
+        mPlaybackService.playLast();
+    }
+
+    @Override
+    public void onSwitchLast(@Nullable Song last) {
+        onSongUpdate(last);
+    }
+
+    @Override
+    public void onSwitchNext(@Nullable Song next) {
+        onSongUpdate(next);
+    }
+
+    @Override
+    public void onComplete(@Nullable Song next) {
+        onSongUpdate(next);
+    }
+
+    @Override
+    public void onPlayStatusChanged(boolean isPlaying) {
+        btn_playbar_play.setImageResource(isPlaying ? R.drawable.ic_remote_view_pause : R.drawable.ic_remote_view_play);
     }
 
     private void init() {
@@ -313,6 +410,25 @@ public class MainActivity extends AppCompatActivity
             }
         } else {
             return true;
+        }
+    }
+
+    public void updatePlaybar() {
+        onSongUpdate(mPlaybackService.getPlayingSong());
+    }
+
+    private void onSongUpdate(Song song) {
+        if (song == null) {
+            btn_playbar_play.setImageResource(R.drawable.ic_remote_view_play);
+            return;
+        }
+
+        tv_playbar_title.setText(song.getDisplayName());
+        tv_playbar_author.setText(song.getArtist());
+        Glide.with(this).load(Utils.getAlbumArtUri(song.getAlbumId())).placeholder(R.drawable.ic_empty).into(albumArt);
+
+        if (mPlaybackService.isPlaying()) {
+            btn_playbar_play.setImageResource(R.drawable.ic_remote_view_pause);
         }
     }
 }

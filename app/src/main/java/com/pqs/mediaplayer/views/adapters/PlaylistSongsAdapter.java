@@ -3,7 +3,6 @@ package com.pqs.mediaplayer.views.adapters;
 import android.content.Context;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,20 +23,21 @@ import com.pqs.mediaplayer.utils.Utils;
 import java.util.List;
 
 /**
- * Created by truongpq on 18/04/2017.
+ * Created by truongpq on 4/23/17.
  */
 
-public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> {
+public class PlaylistSongsAdapter extends RecyclerView.Adapter<PlaylistSongsAdapter.ViewHolder>{
     private Context context;
     private List<Song> songs;
+    private int playlistId;
 
-    public SongsAdapter(Context context, List<Song> songs) {
+    public PlaylistSongsAdapter(Context context, List<Song> songs) {
         this.context = context;
         this.songs = songs;
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public PlaylistSongsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
@@ -45,11 +45,11 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
         View view = inflater.inflate(R.layout.item_local_music, parent, false);
 
         // Return a new holder instance
-        return new ViewHolder(view);
+        return new PlaylistSongsAdapter.ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
+    public void onBindViewHolder(final PlaylistSongsAdapter.ViewHolder holder, final int position) {
         final Song song = songs.get(position);
         holder.text_view_name.setText(song.getDisplayName());
         holder.text_view_artist.setText(song.getArtist());
@@ -65,8 +65,10 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
-                            case R.id.option_add_to_playlist:
-                                Utils.showAddPlaylistDialog(context, song.getId());
+                            case R.id.option_remove_from_playlist:
+                                Utils.removeFromPlaylist(context, song.getId(), playlistId);
+                                songs.remove(position);
+                                notifyItemRemoved(position);
                                 break;
                             case R.id.option_go_to_album:
                                 Utils.slideFragment(AlbumDetailFragment.newInstance(song.getAlbum(), song.getAlbumId()), ((MainActivity) context).getSupportFragmentManager());
@@ -76,14 +78,14 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
                                 break;
                             case R.id.option_delete_from_device:
                                 int[] deleteIds = {song.getId()};
-                                Utils.showDeleteDialog(context, song.getDisplayName(), deleteIds, SongsAdapter.this, position);
+                                Utils.showDeleteDialog(context, song.getDisplayName(), deleteIds, PlaylistSongsAdapter.this, position);
                                 break;
                         }
                         return false;
                     }
                 });
 
-                popupMenu.inflate(R.menu.more_option);
+                popupMenu.inflate(R.menu.song_playlist_more_option);
                 popupMenu.show();
             }
         });
@@ -92,6 +94,10 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
     @Override
     public int getItemCount() {
         return songs.size();
+    }
+
+    public void setPlaylistId(int playlistId) {
+        this.playlistId = playlistId;
     }
 
     public Song getSong(int position) {

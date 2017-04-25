@@ -1,9 +1,9 @@
 package com.pqs.mediaplayer.views.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +18,7 @@ import com.pqs.mediaplayer.fragments.AlbumDetailFragment;
 import com.pqs.mediaplayer.fragments.ArtistDetailFragment;
 import com.pqs.mediaplayer.listener.OnItemClickListener;
 import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.utils.Constants;
 import com.pqs.mediaplayer.utils.TimeUtils;
 import com.pqs.mediaplayer.utils.Utils;
 
@@ -27,11 +28,11 @@ import java.util.List;
  * Created by truongpq on 18/04/2017.
  */
 
-public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> {
+public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedAdapter.ViewHolder> {
     private Context context;
     private List<Song> songs;
 
-    public SongsAdapter(Context context, List<Song> songs) {
+    public SuggestedAdapter(Context context, List<Song> songs) {
         this.context = context;
         this.songs = songs;
     }
@@ -66,17 +67,16 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.option_add_to_playlist:
-                                Utils.showAddPlaylistDialog(context, song.getId());
                                 break;
                             case R.id.option_go_to_album:
-                                Utils.slideFragment(AlbumDetailFragment.newInstance(song.getAlbum(), song.getAlbumId()), ((MainActivity) context).getSupportFragmentManager());
+                                goToAlbum(context, song.getAlbum(), song.getAlbumId());
                                 break;
                             case R.id.option_go_to_artist:
-                                Utils.slideFragment(ArtistDetailFragment.newInstance(song.getArtist(), song.getArtistId()), ((MainActivity) context).getSupportFragmentManager());
+                                goToArtist(context, song.getArtist(), song.getArtistId());
                                 break;
                             case R.id.option_delete_from_device:
                                 int[] deleteIds = {song.getId()};
-                                Utils.showDeleteDialog(context, song.getDisplayName(), deleteIds, SongsAdapter.this, position);
+                                Utils.showDeleteDialog(context, song.getDisplayName(), deleteIds, SuggestedAdapter.this, position);
                                 break;
                         }
                         return false;
@@ -92,6 +92,22 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.ViewHolder> 
     @Override
     public int getItemCount() {
         return songs.size();
+    }
+
+    public void goToAlbum(Context context, String album, long albumId) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setAction(Constants.NAVIGATE_ALBUM);
+        intent.putExtra(Constants.ALBUM_ID, albumId);
+        intent.putExtra(Constants.ALBUM, album);
+        context.startActivity(intent);
+    }
+
+    public void goToArtist(Context context, String artist, long artistId) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setAction(Constants.NAVIGATE_ARTIST);
+        intent.putExtra(Constants.ARTIST_ID, artistId);
+        intent.putExtra(Constants.ARTIST, artist);
+        context.startActivity(intent);
     }
 
     public Song getSong(int position) {

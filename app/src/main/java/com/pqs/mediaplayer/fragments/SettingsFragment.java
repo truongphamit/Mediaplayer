@@ -57,23 +57,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Preference pre_sleep_timer = findPreference(KEY_SLEEP_TIMER);
         pre_sleep_timer.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-
-                return false;
-            }
-        });
-
-        Preference pre_pause_on_disconnect = findPreference(KEY_PAUSE_ON_DISCONNECT);
-        pre_pause_on_disconnect.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            public boolean onPreferenceClick(Preference preference) {
-
-                return false;
-            }
-        });
-
-        Preference pre_resume_on_connect = findPreference(KEY_RESUME_ON_CONNECT);
-        pre_resume_on_connect.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            public boolean onPreferenceClick(Preference preference) {
-
+                Utils.showSleepTimerDialog(getActivity());
                 return false;
             }
         });

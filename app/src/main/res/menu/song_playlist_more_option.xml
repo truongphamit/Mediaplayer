@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/option_remove_from_playlist"
+        android:title="@string/remove_from_playlist" />
+
+    <item
+        android:id="@+id/option_go_to_album"
+        android:title="@string/go_to_album" />
+
+    <item
+        android:id="@+id/option_go_to_artist"
+        android:title="@string/go_to_artist" />
+
+    <item
+        android:id="@+id/option_delete_from_device"
+        android:title="@string/delete_from_device" />
+</menu>

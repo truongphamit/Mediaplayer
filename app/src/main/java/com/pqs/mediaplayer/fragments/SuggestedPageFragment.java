@@ -1,6 +1,8 @@
 package com.pqs.mediaplayer.fragments;
 
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,15 +15,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.pqs.mediaplayer.MainActivity;
 import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.activities.ActivityCallback;
+import com.pqs.mediaplayer.activities.PlaylistActivity;
 import com.pqs.mediaplayer.dataloaders.SongLoader;
+import com.pqs.mediaplayer.dataloaders.TopTracksLoader;
+import com.pqs.mediaplayer.listener.OnItemClickListener;
+import com.pqs.mediaplayer.models.PlayList;
+import com.pqs.mediaplayer.models.Song;
 import com.pqs.mediaplayer.player.PlaybackService;
+import com.pqs.mediaplayer.utils.Constants;
+import com.pqs.mediaplayer.utils.Utils;
 import com.pqs.mediaplayer.views.adapters.SongsAdapter;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -66,6 +77,24 @@ public class SuggestedPageFragment extends Fragment {
         return view;
     }
 
+    @OnClick(R.id.more_most_played)
+    public void more_most_played(View view) {
+        if (mostPlayedAdapter.getAllSong().size() > 0) {
+            Intent intent = new Intent(getActivity(), PlaylistActivity.class);
+            intent.setAction(Constants.NAVIGATE_PLAYLIST_TOPTRACKS);
+            startActivity(intent);
+        }
+    }
+
+    @OnClick(R.id.more_recent_played)
+    public void more_recent_played(View view) {
+        if (recentAdapter.getAllSong().size() > 0) {
+            Intent intent = new Intent(getActivity(), PlaylistActivity.class);
+            intent.setAction(Constants.NAVIGATE_PLAYLIST_RECENT);
+            startActivity(intent);
+        }
+    }
+
     private void setupToolbar() {
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         final ActionBar ab = ((AppCompatActivity) getActivity()).getSupportActionBar();
@@ -87,8 +116,22 @@ public class SuggestedPageFragment extends Fragment {
 
             @Override
             protected Void doInBackground(Void... params) {
-                mostPlayedAdapter = new SongsAdapter(getActivity(), SongLoader.getAllSongs(getActivity()).subList(0, 5));
-                recentAdapter = new SongsAdapter(getActivity(), SongLoader.getAllSongs(getActivity()).subList(0, 5));
+                new TopTracksLoader(getActivity(), TopTracksLoader.QueryType.TopTracks);
+                List<Song> topTrack = SongLoader.getSongForCursor(TopTracksLoader.getCursor());
+                if (topTrack.size() > 5) {
+                    mostPlayedAdapter = new SongsAdapter(getActivity(), topTrack.subList(0, 5));
+                } else {
+                    mostPlayedAdapter = new SongsAdapter(getActivity(), topTrack);
+                }
+
+                new TopTracksLoader(getActivity(), TopTracksLoader.QueryType.RecentSongs);
+                List<Song> recentsongs = SongLoader.getSongForCursor(TopTracksLoader.getCursor());
+                if (recentsongs.size() > 5) {
+                    recentAdapter = new SongsAdapter(getActivity(), recentsongs.subList(0, 5));
+                } else {
+                    recentAdapter = new SongsAdapter(getActivity(), recentsongs);
+                }
+
                 return null;
             }
 
@@ -98,24 +141,43 @@ public class SuggestedPageFragment extends Fragment {
                 rv_most_played.setAdapter(mostPlayedAdapter);
                 rv_recent_played.setAdapter(recentAdapter);
 
-//                albumsAdapter.setOnItemClickListener(new OnItemClickListener() {
-//                    @Override
-//                    public void onItemClick(View itemView, int position) {
-//                        Album album = albumsAdapter.getAlbum(position);
-//                        Utils.slideFragment(AlbumDetailFragment.newInstance(album.getTitle(), album.getId()), getActivity().getSupportFragmentManager());
-//                    }
-//                });
-//
-//                songsAdapter.setOnItemClickListener(new OnItemClickListener() {
-//                    @Override
-//                    public void onItemClick(View itemView, int position) {
-//                        PlayList playList = new PlayList();
-//                        playList.setSongs(songsAdapter.getAllSong());
-//                        playList.setNumOfSongs(songsAdapter.getAllSong().size());
-//                        playbackService.play(playList, position);
-//                        Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
-//                    }
-//                });
+                mostPlayedAdapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        if (mostPlayedAdapter.getAllSong().size() > 20) {
+                            PlayList playList = new PlayList();
+                            playList.setSongs(mostPlayedAdapter.getAllSong().subList(0, 19));
+                            playList.setNumOfSongs(20);
+                            playbackService.play(playList, position);
+                            Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
+                        } else {
+                            PlayList playList = new PlayList();
+                            playList.setSongs(mostPlayedAdapter.getAllSong());
+                            playList.setNumOfSongs(mostPlayedAdapter.getAllSong().size());
+                            playbackService.play(playList, position);
+                            Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
+                        }
+                    }
+                });
+
+                recentAdapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View itemView, int position) {
+                        if (recentAdapter.getAllSong().size() > 20) {
+                            PlayList playList = new PlayList();
+                            playList.setSongs(recentAdapter.getAllSong().subList(0, 19));
+                            playList.setNumOfSongs(20);
+                            playbackService.play(playList, position);
+                            Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
+                        } else {
+                            PlayList playList = new PlayList();
+                            playList.setSongs(recentAdapter.getAllSong());
+                            playList.setNumOfSongs(recentAdapter.getAllSong().size());
+                            playbackService.play(playList, position);
+                            Utils.slideFragment(NowPlayingFragment.newInstance(), getActivity().getSupportFragmentManager());
+                        }
+                    }
+                });
             }
         }.execute();
     }

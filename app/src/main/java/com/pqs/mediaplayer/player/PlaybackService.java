@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Binder;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
@@ -22,7 +23,9 @@ import com.pqs.mediaplayer.R;
 import com.pqs.mediaplayer.fragments.SettingsFragment;
 import com.pqs.mediaplayer.models.PlayList;
 import com.pqs.mediaplayer.models.Song;
+import com.pqs.mediaplayer.provider.RecentStore;
 import com.pqs.mediaplayer.utils.AlbumUtils;
+import com.pqs.mediaplayer.utils.Utils;
 
 /**
  * Created by truongpq on 4/17/17.
@@ -40,7 +43,31 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
     private RemoteViews mContentViewBig, mContentViewSmall;
 
     private Player mPlayer;
+
     private HeadsetReceiver headsetReceiver;
+
+    private SharedPreferences preferences;
+
+    SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals(SettingsFragment.KEY_SLEEP_TIMER)) {
+                int time = preferences.getInt(SettingsFragment.KEY_SLEEP_TIMER, 0);
+                if (time != 0) {
+                    new CountDownTimer(Utils.getTimer(time),1000) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            pause();
+                        }
+                    }.start();
+                }
+            }
+        }
+    };
 
     private final Binder mBinder = new LocalBinder();
 
@@ -53,8 +80,11 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
     @Override
     public void onCreate() {
         super.onCreate();
-        mPlayer = Player.getInstance();
+        mPlayer = Player.getInstance(this);
         mPlayer.registerCallback(this);
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
         headsetReceiver = new HeadsetReceiver();
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
@@ -90,7 +120,6 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(PlaybackService.this);
                 int state = intent.getIntExtra("state", -1);
                 switch (state) {
                     case 0:
@@ -131,6 +160,8 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
     public void onDestroy() {
         releasePlayer();
         unregisterReceiver(headsetReceiver);
+        preferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
+        preferences.edit().putInt(SettingsFragment.KEY_SLEEP_TIMER, 0).apply();
         super.onDestroy();
     }
 

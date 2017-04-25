@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp">
+
+    <ImageView
+        android:id="@+id/playlisArt"
+        android:layout_width="75dp"
+        android:layout_height="70dp"
+        android:src="@drawable/ic_empty" />
+
+    <TextView
+        android:id="@+id/tv_playlist_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="8dp"
+        android:layout_toRightOf="@+id/playlisArt"
+        android:text="My Playlist"
+        android:textColor="@android:color/white" />
+
+    <ImageView
+        android:id="@+id/more_option"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:padding="8dp"
+        android:src="@drawable/ic_list_item_action" />
+</RelativeLayout>

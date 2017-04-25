@@ -63,6 +63,12 @@ public class PlayList implements Parcelable {
         numOfSongs = 1;
     }
 
+    public PlayList(int id, String name, int numOfSongs) {
+        this.id = id;
+        this.name = name;
+        this.numOfSongs = numOfSongs;
+    }
+
     public PlayList(Parcel in) {
         readFromParcel(in);
     }
